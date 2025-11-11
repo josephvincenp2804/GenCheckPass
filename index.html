@@ -1,410 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenCheckPass</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            min-height: 100vh; 
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 500px; 
-            margin: 0 auto; 
-            background: white; 
-            border-radius: 15px; 
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        }
-        h1 { 
-            text-align: center; 
-            color: #2c3e50; 
-            margin-bottom: 10px;
-            font-size: 32px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        .tabs { 
-            display: flex; 
-            margin-bottom: 25px; 
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 5px;
-        }
-        .tab { 
-            flex: 1;
-            padding: 12px; 
-            border: none; 
-            background: none; 
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .tab.active { 
-            background: white; 
-            color: #667eea; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .content { 
-            display: none; 
-        }
-        .content.active { 
-            display: block;
-        }
-        .card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 2px solid #e9ecef;
-        }
-        .input-group { 
-            margin-bottom: 20px;
-        }
-        label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        input, select { 
-            width: 100%; 
-            padding: 12px 15px; 
-            border: 2px solid #e9ecef; 
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            border: none; 
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
-        .btn-primary { 
-            background: #667eea; 
-            color: white; 
-        }
-        .btn-primary:hover { 
-            background: #5a6fd8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .btn-success { 
-            background: #28a745; 
-            color: white; 
-        }
-        .btn-success:hover { 
-            background: #218838;
-        }
-        .btn-secondary { 
-            background: #6c757d; 
-            color: white; 
-        }
-        .btn-secondary:hover { 
-            background: #5a6268;
-        }
-        .result { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 10px; 
-            margin: 20px 0;
-            border-left: 5px solid #667eea;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-        .password { 
-            font-family: 'Courier New', monospace; 
-            font-size: 22px; 
-            font-weight: bold;
-            margin: 15px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: center;
-            letter-spacing: 1px;
-            color: #2c3e50;
-            border: 2px dashed #dee2e6;
-        }
-        .strength-container {
-            margin: 15px 0;
-        }
-        .strength-label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: block;
-        }
-        .strength-bar { 
-            height: 12px; 
-            background: #e9ecef; 
-            border-radius: 6px; 
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        .strength-fill { 
-            height: 100%; 
-            border-radius: 6px; 
-            transition: all 0.5s ease;
-            width: 0%;
-        }
-        .feedback { 
-            padding: 15px; 
-            border-radius: 8px; 
-            margin: 15px 0;
-            font-weight: 500;
-        }
-        .very-weak { background: #ffe6e6; color: #dc3545; border-left: 4px solid #dc3545; }
-        .weak { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
-        .good { background: #e6f7e6; color: #28a745; border-left: 4px solid #28a745; }
-        .strong { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
-        .very-strong { background: #e6f7e6; color: #155724; border-left: 4px solid #28a745; }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .action-buttons button {
-            flex: 1;
-            margin-top: 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🔐 GenCheckPass</h1>
-        <div class="subtitle">Generate & Check Secure Passwords</div>
+from flask import Flask, render_template, request, jsonify
+import random
+import string
+import re
+
+app = Flask(__name__)
+
+class PasswordManager:
+    def __init__(self):
+        pass
+    
+    def generate_password(self, length=16):
+        """Generate strong random password with all character types"""
+        try:
+            # Ensure minimum and maximum length
+            length = max(8, min(50, length))
+            
+            uppercase = random.choice(string.ascii_uppercase)
+            lowercase = random.choice(string.ascii_lowercase)
+            digits = random.choice(string.digits)
+            symbols = random.choice("!@#$%&*")
+            
+            remaining_length = length - 4
+            all_chars = string.ascii_letters + string.digits + "!@#$%&*"
+            remaining = ''.join(random.choice(all_chars) for _ in range(remaining_length))
+            
+            password = uppercase + lowercase + digits + symbols + remaining
+            password_list = list(password)
+            random.shuffle(password_list)
+            return ''.join(password_list)
+        except Exception as e:
+            # Fallback simple password generation
+            chars = string.ascii_letters + string.digits + "!@#$%&*"
+            return ''.join(random.choice(chars) for _ in range(length))
+    
+    def check_strength(self, password):
+        """Enhanced password strength check"""
+        try:
+            if not password:
+                return {
+                    'score': 0,
+                    'strength': "Very Weak ❌",
+                    'feedback': ["Password is empty"],
+                    'max_score': 100
+                }
+            
+            score = 0
+            feedback = []
+            
+            # Length (max 30 points)
+            if len(password) >= 8: score += 10
+            if len(password) >= 12: score += 10
+            if len(password) >= 16: score += 10
+            
+            # Character types (max 40 points)
+            if re.search(r'[A-Z]', password): score += 10
+            else: feedback.append("Add uppercase letters")
+                
+            if re.search(r'[a-z]', password): score += 10
+            else: feedback.append("Add lowercase letters")
+                
+            if re.search(r'\d', password): score += 10
+            else: feedback.append("Add numbers")
+                
+            if re.search(r'[!@#$%&*]', password): score += 10
+            else: feedback.append("Add symbols")
+            
+            # Complexity bonus (max 30 points)
+            char_types = sum([
+                bool(re.search(r'[A-Z]', password)),
+                bool(re.search(r'[a-z]', password)),
+                bool(re.search(r'\d', password)),
+                bool(re.search(r'[!@#$%&*]', password))
+            ])
+            
+            if char_types == 4: score += 30
+            elif char_types == 3: score += 15
+            elif char_types == 2: score += 5
+            
+            # Final rating
+            if score >= 80:
+                strength = "Very Strong 💪"
+            elif score >= 60:
+                strength = "Strong 👍"
+            elif score >= 40:
+                strength = "Good ✅"
+            elif score >= 20:
+                strength = "Weak ⚠️"
+            else:
+                strength = "Very Weak ❌"
+            
+            return {
+                'score': score,
+                'strength': strength,
+                'feedback': feedback,
+                'max_score': 100
+            }
+        except Exception as e:
+            return {
+                'score': 0,
+                'strength': "Error ❌",
+                'feedback': [f"Error analyzing password: {str(e)}"],
+                'max_score': 100
+            }
+
+manager = PasswordManager()
+
+@app.route('/')
+def home():
+    """Serve the main application"""
+    return render_template('index.html')
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    """API endpoint to generate passwords"""
+    try:
+        if not request.is_json:
+            return jsonify({
+                'error': 'Content-Type must be application/json'
+            }), 400
+            
+        data = request.get_json()
+        length = int(data.get('length', 16))
         
-        <div class="tabs">
-            <button class="tab active" onclick="showTab(0)">Generate</button>
-            <button class="tab" onclick="showTab(1)">Check</button>
-        </div>
-
-        <!-- Generate Tab -->
-        <div class="content active" id="tab0">
-            <div class="card">
-                <div class="input-group">
-                    <label>Password Length:</label>
-                    <select id="length">
-                        <option value="12">12 characters</option>
-                        <option value="16" selected>16 characters</option>
-                        <option value="20">20 characters</option>
-                        <option value="24">24 characters</option>
-                    </select>
-                </div>
-                <button class="btn-primary" onclick="generatePassword()">
-                    🚀 Generate Secure Password
-                </button>
-            </div>
-
-            <div class="result" id="generateResult" style="display:none">
-                <strong>🔒 Your Generated Password:</strong>
-                <div class="password" id="genPassword"></div>
-                
-                <div class="strength-container">
-                    <span class="strength-label">Strength Analysis:</span>
-                    <div class="strength-bar">
-                        <div class="strength-fill" id="genStrength"></div>
-                    </div>
-                </div>
-                
-                <div class="feedback" id="genFeedback"></div>
-                
-                <div class="action-buttons">
-                    <button class="btn-success" onclick="copyPassword('genPassword')">
-                        📋 Copy Password
-                    </button>
-                    <button class="btn-secondary" onclick="generatePassword()">
-                        🔄 Generate New
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Check Tab -->
-        <div class="content" id="tab1">
-            <div class="card">
-                <div class="input-group">
-                    <label>Enter Password to Check:</label>
-                    <input type="text" id="checkPassword" placeholder="Type your password here...">
-                </div>
-                <button class="btn-primary" onclick="checkStrength()">
-                    🔍 Check Password Strength
-                </button>
-            </div>
-
-            <div class="result" id="checkResult" style="display:none">
-                <div class="strength-container">
-                    <span class="strength-label">Strength Analysis:</span>
-                    <div class="strength-bar">
-                        <div class="strength-fill" id="checkStrength"></div>
-                    </div>
-                </div>
-                <div class="feedback" id="checkFeedback"></div>
-                
-                <div class="action-buttons">
-                    <button class="btn-secondary" onclick="clearCheck()">
-                        🗑️ Clear
-                    </button>
-                    <button class="btn-primary" onclick="checkStrength()">
-                        🔄 Check Again
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Tab navigation
-        function showTab(index) {
-            document.querySelectorAll('.tab').forEach((tab, i) => {
-                tab.classList.toggle('active', i === index);
-            });
-            document.querySelectorAll('.content').forEach((content, i) => {
-                content.classList.toggle('active', i === index);
-            });
-        }
-
-        // Generate password
-        async function generatePassword() {
-            const length = document.getElementById('length').value;
-            const button = event?.target || document.querySelector('.btn-primary');
-            const originalText = button.innerHTML;
+        # Validate length
+        length = max(8, min(50, length))
             
-            button.innerHTML = '⏳ Generating...';
-            button.disabled = true;
-            
-            try {
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({length: parseInt(length)})
-                });
-                const data = await response.json();
-                
-                document.getElementById('genPassword').textContent = data.password;
-                updateStrengthDisplay('genStrength', 'genFeedback', data.strength);
-                document.getElementById('generateResult').style.display = 'block';
-                
-            } catch (error) {
-                alert('Error generating password: ' + error.message);
-            } finally {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }
-        }
+        password = manager.generate_password(length)
+        strength = manager.check_strength(password)
+        
+        return jsonify({
+            'password': password,
+            'strength': strength
+        })
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'password': manager.generate_password(16),
+            'strength': {'score': 0, 'strength': 'Error', 'feedback': [str(e)]}
+        }), 500
 
-        // Check password strength
-        async function checkStrength() {
-            const password = document.getElementById('checkPassword').value;
-            if (!password) {
-                alert('Please enter a password to check');
-                return;
-            }
+@app.route('/check', methods=['POST'])
+def check():
+    """API endpoint to check password strength"""
+    try:
+        if not request.is_json:
+            return jsonify({
+                'error': 'Content-Type must be application/json'
+            }), 400
             
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = '⏳ Analyzing...';
-            button.disabled = true;
-            
-            try {
-                const response = await fetch('/check', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({password})
-                });
-                const data = await response.json();
-                
-                updateStrengthDisplay('checkStrength', 'checkFeedback', data.strength);
-                document.getElementById('checkResult').style.display = 'block';
-                
-            } catch (error) {
-                alert('Error checking password: ' + error.message);
-            } finally {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }
-        }
+        data = request.get_json()
+        password = data.get('password', '')
+        
+        strength = manager.check_strength(password)
+        
+        return jsonify({
+            'strength': strength
+        })
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'strength': {'score': 0, 'strength': 'Error', 'feedback': [str(e)]}
+        }), 500
 
-        // Update strength display
-        function updateStrengthDisplay(barId, feedbackId, strength) {
-            const bar = document.getElementById(barId);
-            const feedback = document.getElementById(feedbackId);
-            const score = strength.score;
-            
-            // Update progress bar
-            const percentage = (score / strength.max_score) * 100;
-            bar.style.width = percentage + '%';
-            
-            // Set colors based on strength
-            if (strength.strength.includes('Very Strong')) {
-                bar.style.background = '#28a745';
-                feedback.className = 'feedback very-strong';
-            } else if (strength.strength.includes('Strong')) {
-                bar.style.background = '#17a2b8';
-                feedback.className = 'feedback strong';
-            } else if (strength.strength.includes('Good')) {
-                bar.style.background = '#ffc107';
-                feedback.className = 'feedback good';
-            } else if (strength.strength.includes('Weak')) {
-                bar.style.background = '#fd7e14';
-                feedback.className = 'feedback weak';
-            } else {
-                bar.style.background = '#dc3545';
-                feedback.className = 'feedback very-weak';
-            }
-            
-            // Update feedback text
-            feedback.innerHTML = `<strong>${strength.strength}</strong><br>`;
-            feedback.innerHTML += `Score: ${score}/100<br><br>`;
-            
-            if (strength.feedback && strength.feedback.length > 0) {
-                feedback.innerHTML += '<strong>Suggestions:</strong><br>';
-                strength.feedback.forEach(item => {
-                    feedback.innerHTML += `• ${item}<br>`;
-                });
-            } else {
-                feedback.innerHTML += '🎉 Excellent! No improvements needed.';
-            }
-        }
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy', 
+        'service': 'GenCheckPass',
+        'version': '1.0.0'
+    })
 
-        // Copy password to clipboard
-        function copyPassword(elementId) {
-            const password = document.getElementById(elementId).textContent;
-            navigator.clipboard.writeText(password).then(() => {
-                alert('✅ Password copied to clipboard!');
-            }).catch(() => {
-                alert('❌ Failed to copy password');
-            });
-        }
-
-        // Clear check form
-        function clearCheck() {
-            document.getElementById('checkPassword').value = '';
-            document.getElementById('checkResult').style.display = 'none';
-        }
-
-        // Generate a password when page loads
-        window.onload = function() {
-            generatePassword();
-        };
-    </script>
-</body>
-</html>
+if __name__ == '__main__':
+    print("🔐 GenCheckPass starting...")
+    print("🌐 Open: http://localhost:5000")
+    print("🚀 Server is running!")
+    app.run(debug=True, host='0.0.0.0', port=5000)
