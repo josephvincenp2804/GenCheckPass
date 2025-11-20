@@ -436,7 +436,7 @@
             button.classList.add('loading');
             
             try {
-                const response = await fetch('/generate', {
+                const response = await fetch('https://gencheckpass.onrender.com/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -483,7 +483,7 @@
             button.classList.add('loading');
             
             try {
-                const response = await fetch('/check', {
+                const response = await fetch('https://gencheckpass.onrender.com/check', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -588,4 +588,5 @@
         });
     </script>
 </body>
+
 </html>
